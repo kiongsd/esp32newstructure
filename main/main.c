@@ -10,6 +10,7 @@
 #include "app_core_request_gateway.h"
 #include "app_core_dispatcher.h"
 #include "app_core_runtime.h"
+#include "app_core_action_engine.h"
 /**
  * @brief 测试 Domain 是否处理指定 Request。
  */
@@ -134,6 +135,36 @@ static esp_err_t test_gateway_read_state(
 
     return ESP_OK;
 }
+typedef struct
+{
+    app_core_event_t last_event;
+    bool event_received;
+
+} test_action_engine_event_context_t;
+/**
+ * @brief Action Engine 的假 Event 输出回调。
+ */
+static esp_err_t test_action_engine_emit_event(
+    void *ctx,
+    const app_core_event_t *event)
+{
+    test_action_engine_event_context_t *test_ctx =
+        (test_action_engine_event_context_t *)ctx;
+
+    if (test_ctx == NULL ||
+        event == NULL)
+    {
+        return ESP_ERR_INVALID_ARG;
+    }
+
+    test_ctx->last_event =
+        *event;
+
+    test_ctx->event_received =
+        true;
+
+    return ESP_OK;
+}
 /**
  * @brief App Core 公共层编译验证入口。
  *
@@ -190,6 +221,27 @@ void app_main(void)
     app_core_effect_t runtime_effect;
     esp_err_t runtime_execute_result;
     bool runtime_valid;
+
+    QueueHandle_t action_queue = NULL;
+
+    app_core_action_engine_t action_engine = {0};
+    app_core_effect_t engine_effect;
+    app_core_action_t engine_action;
+    app_core_action_t last_engine_action = {0};
+    app_core_event_t engine_result_event;
+
+    test_action_engine_event_context_t
+        action_event_context = {0};
+
+    esp_err_t action_engine_init_result;
+    esp_err_t action_engine_bind_result;
+    esp_err_t action_engine_submit_result;
+    esp_err_t action_engine_process_result;
+    esp_err_t action_engine_event_result;
+    esp_err_t action_engine_last_result;
+
+    bool action_engine_valid;
+
     app_core_request_init(
         &request,
         APP_CORE_REQUEST_TYPE_CAPTURE,
@@ -380,6 +432,133 @@ void app_main(void)
     printf(
         "runtime: valid=%s\n",
         runtime_valid ? "true" : "false");
+    app_core_effect_init(
+        &engine_effect,
+        APP_CORE_EFFECT_TYPE_SHOW_PAGE,
+        request.meta.request_id,
+        request.meta.request_id,
+        APP_CORE_SOURCE_ACTION,
+        APP_CORE_SCOPE_LVGL);
+
+    engine_effect.data.page =
+        APP_CORE_LVGL_PAGE_MENU;
+
+    app_core_action_init(
+        &engine_action,
+        2U,
+        &engine_effect);
+
+    action_queue =
+        xQueueCreate(
+            2U,
+            sizeof(app_core_action_t));
+
+    action_engine_init_result =
+        ESP_ERR_INVALID_STATE;
+
+    action_engine_bind_result =
+        ESP_ERR_INVALID_STATE;
+
+    action_engine_submit_result =
+        ESP_ERR_INVALID_STATE;
+
+    action_engine_process_result =
+        ESP_ERR_INVALID_STATE;
+
+    action_engine_event_result =
+        ESP_ERR_INVALID_STATE;
+
+    action_engine_last_result =
+        ESP_ERR_INVALID_STATE;
+
+    action_engine_valid =
+        false;
+
+    if (action_queue != NULL)
+    {
+        action_engine_init_result =
+            app_core_action_engine_init(
+                &action_engine,
+                &runtime,
+                action_queue);
+
+        if (action_engine_init_result == ESP_OK)
+        {
+            action_engine_bind_result =
+                app_core_action_engine_bind_event_sink(
+                    &action_engine,
+                    test_action_engine_emit_event,
+                    &action_event_context);
+        }
+
+        if (action_engine_bind_result == ESP_OK)
+        {
+            action_engine_submit_result =
+                app_core_action_engine_submit(
+                    &action_engine,
+                    &engine_action);
+        }
+
+        if (action_engine_submit_result == ESP_OK)
+        {
+            action_engine_process_result =
+                app_core_action_engine_process_once(
+                    &action_engine);
+        }
+
+        app_core_event_init(
+            &engine_result_event,
+            APP_CORE_EVENT_TYPE_PAGE_SHOWN,
+            engine_effect.meta.request_id,
+            engine_effect.meta.parent_request_id,
+            APP_CORE_SOURCE_DRIVER,
+            APP_CORE_SCOPE_LVGL);
+
+        engine_result_event.data.page =
+            APP_CORE_LVGL_PAGE_MENU;
+
+        if (action_engine_process_result == ESP_OK)
+        {
+            action_engine_event_result =
+                app_core_action_engine_handle_event(
+                    &action_engine,
+                    &engine_result_event);
+        }
+
+        if (action_engine_event_result == ESP_OK)
+        {
+            action_engine_last_result =
+                app_core_action_engine_get_last_action(
+                    &action_engine,
+                    &last_engine_action);
+        }
+
+        action_engine_valid =
+            action_engine_init_result == ESP_OK &&
+            action_engine_bind_result == ESP_OK &&
+            action_engine_submit_result == ESP_OK &&
+            action_engine_process_result == ESP_OK &&
+            action_engine_event_result == ESP_OK &&
+            action_engine_last_result == ESP_OK &&
+            last_engine_action.state ==
+                APP_CORE_ACTION_STATE_SUCCEEDED;
+    }
+
+    printf(
+        "action engine: valid=%s, state=%s\n",
+        action_engine_valid ? "true" : "false",
+        app_core_action_state_to_string(
+            last_engine_action.state));
+
+    if (action_queue != NULL)
+    {
+        vQueueDelete(action_queue);
+        action_queue = NULL;
+    }
+
+    action_engine =
+        (app_core_action_engine_t){0};
+
     app_core_state_store_deinit(&state_store);
     request_valid =
         app_core_request_is_valid(&request);
