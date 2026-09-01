@@ -1,0 +1,52 @@
+# ESP-IDF 构建目录
+/build/
+/.cache/
+**/build/
+**/.cache/
+
+# CMake、Ninja 生成文件
+**/CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+build.ninja
+.ninja_deps
+.ninja_log
+
+# 编译产物
+*.elf
+*.map
+*.bin
+*.hex
+*.uf2
+*.o
+*.a
+compile_commands.json
+
+# ESP-IDF 自动生成文件
+sdkconfig.old
+sdkconfig.*.old
+
+# 第三方组件缓存
+/managed_components/
+
+# 旧代码备份，不参与当前工程
+/legacy_original/
+
+# Python 虚拟环境
+**/.venv/
+**/venv/
+
+# Python 缓存
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# 临时文件
+*.tmp
+*.temp
+*.log
+*.bak
+.DS_Store
+Thumbs.db
