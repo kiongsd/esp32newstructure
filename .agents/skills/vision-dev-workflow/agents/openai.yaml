@@ -1,0 +1,7 @@
+interface:
+  display_name: "Vision Dev Workflow"
+  short_description: "Run checks and create safe Git checkpoints"
+  default_prompt: "Use $vision-dev-workflow to implement this change, run appropriate checks, and create a Git checkpoint."
+
+policy:
+  allow_implicit_invocation: true

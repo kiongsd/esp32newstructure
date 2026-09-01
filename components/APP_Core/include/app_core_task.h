@@ -1,10 +1,12 @@
 #ifndef APP_CORE_TASK_H
 #define APP_CORE_TASK_H
 
+#include <stdbool.h>
+#include <stdint.h>
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 
-#include "app_core_action_engine.h"
 #include "app_core_dispatcher.h"
 
 #ifdef __cplusplus
@@ -15,22 +17,18 @@ extern "C"
     /**
      * @brief App Core 任务控制对象。
      *
-     * App Core Task 负责周期性驱动：
+     * App Core Task 只负责周期性驱动 Dispatcher。
+     * Dispatcher 再负责：
      *
-     * 1. Dispatcher 处理 Request 和 Event；
-     * 2. Action Engine 执行待处理 Action；
-     * 3. Action Engine 等待并处理底层 Event。
-     *
-     * 当前任务不直接执行 Camera、LVGL、Web 或 OTA，
-     * 具体动作由 Runtime 完成。
+     * 1. 处理 Request；
+     * 2. 处理 Event；
+     * 3. 驱动所有 Domain 的 process_once；
+     * 4. 间接驱动各个 Domain 自己的 Action Engine。
      */
     typedef struct
     {
-        /** 要处理 Request 和 Event 的 Dispatcher。 */
+        /** 要处理 Request、Event 和 Domain 的 Dispatcher。 */
         app_core_dispatcher_t *dispatcher;
-
-        /** 要执行 Action 的 Action Engine。 */
-        app_core_action_engine_t *action_engine;
 
         /** FreeRTOS 任务句柄。 */
         TaskHandle_t task_handle;
@@ -41,7 +39,7 @@ extern "C"
         /** 任务优先级。 */
         UBaseType_t priority;
 
-        /** 两次处理循环之间的最大等待时间，单位为毫秒。 */
+        /** 两次处理循环之间的等待时间，单位为毫秒。 */
         uint32_t poll_interval_ms;
 
         /** 请求任务退出。 */
@@ -63,7 +61,6 @@ extern "C"
      *
      * @param task 要初始化的任务对象。
      * @param dispatcher Dispatcher 对象。
-     * @param action_engine Action Engine 对象。
      * @param stack_size 任务栈大小。
      * @param priority 任务优先级。
      * @param poll_interval_ms 轮询间隔。
@@ -72,7 +69,6 @@ extern "C"
     esp_err_t app_core_task_init(
         app_core_task_t *task,
         app_core_dispatcher_t *dispatcher,
-        app_core_action_engine_t *action_engine,
         uint32_t stack_size,
         UBaseType_t priority,
         uint32_t poll_interval_ms);
@@ -88,9 +84,6 @@ extern "C"
 
     /**
      * @brief 请求 App Core Task 停止。
-     *
-     * 该函数只设置退出标志，
-     * 任务会自行退出并释放自己的任务资源。
      *
      * @param task App Core Task。
      * @return ESP_OK 表示请求成功。

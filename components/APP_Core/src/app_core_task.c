@@ -50,23 +50,22 @@ static void app_core_task_entry(
     while (!task->stop_requested)
     {
         /**
-         * 先处理外部 Request、底层 Event
-         * 和各个 Domain 的周期处理。
+         * Dispatcher 负责：
+         *
+         * 1. 处理 Request；
+         * 2. 处理 Event；
+         * 3. 驱动所有 Domain；
+         * 4. 驱动每个 Domain 对应的 Action Engine。
          */
         (void)app_core_dispatcher_process_once(
             task->dispatcher);
 
         /**
-         * 再处理待执行的 Action。
-         */
-        (void)app_core_action_engine_process_once(
-            task->action_engine);
-
-        /**
-         * 没有新的消息时休眠。
+         * 当前 Dispatcher 在没有消息时可能返回 ESP_OK，
+         * 因此这里始终休眠，避免任务空转占满 CPU。
          *
-         * Request Stop 时会通过任务通知唤醒，
-         * 避免任务一直等待到完整轮询周期结束。
+         * 请求停止时，app_core_task_request_stop()
+         * 会通过任务通知提前唤醒这里。
          */
         ulTaskNotifyTake(
             pdTRUE,
@@ -88,21 +87,18 @@ static void app_core_task_entry(
 esp_err_t app_core_task_init(
     app_core_task_t *task,
     app_core_dispatcher_t *dispatcher,
-    app_core_action_engine_t *action_engine,
     uint32_t stack_size,
     UBaseType_t priority,
     uint32_t poll_interval_ms)
 {
     if (task == NULL ||
         dispatcher == NULL ||
-        action_engine == NULL ||
         stack_size == 0U)
     {
         return ESP_ERR_INVALID_ARG;
     }
 
-    if (!dispatcher->initialized ||
-        !action_engine->initialized)
+    if (!dispatcher->initialized)
     {
         return ESP_ERR_INVALID_STATE;
     }
@@ -124,9 +120,6 @@ esp_err_t app_core_task_init(
 
     task->dispatcher =
         dispatcher;
-
-    task->action_engine =
-        action_engine;
 
     task->stack_size =
         stack_size;
@@ -163,8 +156,7 @@ esp_err_t app_core_task_start(
     }
 
     if (!task->initialized ||
-        task->dispatcher == NULL ||
-        task->action_engine == NULL)
+        task->dispatcher == NULL)
     {
         return ESP_ERR_INVALID_STATE;
     }

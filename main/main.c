@@ -1,5 +1,3 @@
-#include <stdio.h>
-
 #include "app_core_domain.h"
 #include "app_core_effect.h"
 #include "app_core_event.h"
@@ -11,6 +9,11 @@
 #include "app_core_dispatcher.h"
 #include "app_core_runtime.h"
 #include "app_core_action_engine.h"
+#include "esp_err.h"
+#include "esp_log.h"
+
+static const char *TAG = "APP_MAIN";
+
 /**
  * @brief 测试 Domain 是否处理指定 Request。
  */
@@ -173,11 +176,11 @@ static esp_err_t test_action_engine_emit_event(
  */
 void app_main(void)
 {
-    app_core_request_t request;
-    app_core_event_t event;
-    app_core_effect_t effect;
-    app_core_state_snapshot_t snapshot;
-    app_core_domain_handler_t domain;
+    static app_core_request_t request;
+    static app_core_event_t event;
+    static app_core_effect_t effect;
+    static app_core_state_snapshot_t snapshot;
+    static app_core_domain_handler_t domain;
 
     bool request_valid;
     bool event_valid;
@@ -185,11 +188,11 @@ void app_main(void)
     bool state_valid;
     bool domain_valid;
 
-    app_core_action_t action;
+    static app_core_action_t action;
     bool action_valid;
 
-    app_core_state_store_t state_store = {0};
-    app_core_state_snapshot_t stored_snapshot = {0};
+    static app_core_state_store_t state_store;
+    static app_core_state_snapshot_t stored_snapshot;
 
     esp_err_t state_store_init_result;
     esp_err_t state_store_publish_result;
@@ -197,9 +200,9 @@ void app_main(void)
 
     bool state_store_valid;
 
-    test_gateway_context_t gateway_context = {0};
-    app_core_request_t gateway_request;
-    app_core_state_snapshot_t gateway_snapshot = {0};
+    static test_gateway_context_t gateway_context;
+    static app_core_request_t gateway_request;
+    static app_core_state_snapshot_t gateway_snapshot;
 
     esp_err_t gateway_init_result;
     esp_err_t gateway_bind_result;
@@ -208,7 +211,7 @@ void app_main(void)
 
     bool gateway_valid;
 
-    app_core_dispatcher_t dispatcher = {0};
+    static app_core_dispatcher_t dispatcher;
 
     esp_err_t dispatcher_init_result;
     esp_err_t dispatcher_register_result;
@@ -217,21 +220,21 @@ void app_main(void)
     esp_err_t dispatcher_process_result;
 
     bool dispatcher_valid;
-    app_core_runtime_t runtime = {0};
-    app_core_effect_t runtime_effect;
+    static app_core_runtime_t runtime;
+    static app_core_effect_t runtime_effect;
     esp_err_t runtime_execute_result;
     bool runtime_valid;
 
     QueueHandle_t action_queue = NULL;
 
-    app_core_action_engine_t action_engine = {0};
-    app_core_effect_t engine_effect;
-    app_core_action_t engine_action;
-    app_core_action_t last_engine_action = {0};
-    app_core_event_t engine_result_event;
+    static app_core_action_engine_t action_engine;
+    static app_core_effect_t engine_effect;
+    static app_core_action_t engine_action;
+    static app_core_action_t last_engine_action;
+    static app_core_event_t engine_result_event;
 
-    test_action_engine_event_context_t
-        action_event_context = {0};
+    static test_action_engine_event_context_t
+        action_event_context;
 
     esp_err_t action_engine_init_result;
     esp_err_t action_engine_bind_result;
@@ -337,8 +340,9 @@ void app_main(void)
         }
     }
 
-    printf(
-        "dispatcher: valid=%s\n",
+    ESP_LOGI(
+        TAG,
+        "dispatcher: valid=%s",
         dispatcher_valid ? "true" : "false");
 
     app_core_dispatcher_deinit(
@@ -401,8 +405,9 @@ void app_main(void)
                 &stored_snapshot);
     }
 
-    printf(
-        "state store: valid=%s, revision=%u\n",
+    ESP_LOGI(
+        TAG,
+        "state store: valid=%s, revision=%u",
         state_store_valid ? "true" : "false",
         (unsigned)stored_snapshot.revision);
     app_core_effect_init(
@@ -429,8 +434,9 @@ void app_main(void)
         app_core_effect_is_valid(
             &runtime_effect);
 
-    printf(
-        "runtime: valid=%s\n",
+    ESP_LOGI(
+        TAG,
+        "runtime: valid=%s",
         runtime_valid ? "true" : "false");
     app_core_effect_init(
         &engine_effect,
@@ -544,8 +550,9 @@ void app_main(void)
                 APP_CORE_ACTION_STATE_SUCCEEDED;
     }
 
-    printf(
-        "action engine: valid=%s, state=%s\n",
+    ESP_LOGI(
+        TAG,
+        "action engine: valid=%s, state=%s",
         action_engine_valid ? "true" : "false",
         app_core_action_state_to_string(
             last_engine_action.state));
@@ -578,32 +585,38 @@ void app_main(void)
     action_valid =
         app_core_action_is_valid(&action);
 
-    printf(
-        "request: %s, valid=%s\n",
+    ESP_LOGI(
+        TAG,
+        "request: %s, valid=%s",
         app_core_request_type_to_string(request.type),
         request_valid ? "true" : "false");
 
-    printf(
-        "event: %s, valid=%s\n",
+    ESP_LOGI(
+        TAG,
+        "event: %s, valid=%s",
         app_core_event_type_to_string(event.type),
         event_valid ? "true" : "false");
 
-    printf(
-        "effect: %s, valid=%s\n",
+    ESP_LOGI(
+        TAG,
+        "effect: %s, valid=%s",
         app_core_effect_type_to_string(effect.type),
         effect_valid ? "true" : "false");
 
-    printf(
-        "state: %s, valid=%s\n",
+    ESP_LOGI(
+        TAG,
+        "state: %s, valid=%s",
         app_core_system_state_to_string(snapshot.system_state),
         state_valid ? "true" : "false");
 
-    printf(
-        "domain valid: %s\n",
+    ESP_LOGI(
+        TAG,
+        "domain valid: %s",
         domain_valid ? "true" : "false");
 
-    printf(
-        "action: %s, valid=%s\n",
+    ESP_LOGI(
+        TAG,
+        "action: %s, valid=%s",
         app_core_action_state_to_string(action.state),
         action_valid ? "true" : "false");
 
@@ -637,8 +650,9 @@ void app_main(void)
         }
     }
 
-    printf(
-        "gateway: valid=%s, request_id=%u\n",
+    ESP_LOGI(
+        TAG,
+        "gateway: valid=%s, request_id=%u",
         gateway_valid ? "true" : "false",
         (unsigned)gateway_context.last_request.meta.request_id);
 

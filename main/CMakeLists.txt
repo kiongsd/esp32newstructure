@@ -7,4 +7,5 @@ idf_component_register(
 
     REQUIRES
         APP_Core
+        APP_Business
 )
