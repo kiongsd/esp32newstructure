@@ -1,5 +1,10 @@
 #include "app_system_fsm.h"
 
+/**
+ * @brief 判断 System 是否处于忙状态。
+ *
+ * 忙状态下不能再次发起新的生命周期转换请求。
+ */
 static bool system_state_is_busy(app_core_system_state_t state)
 {
     switch (state)
@@ -14,6 +19,11 @@ static bool system_state_is_busy(app_core_system_state_t state)
     }
 }
 
+/**
+ * @brief 分配下一个 System Action 编号。
+ *
+ * 0 保留给无效 Action ID；编号溢出后从 1 重新开始。
+ */
 static app_core_action_id_t system_allocate_action_id(
     app_system_fsm_t *fsm)
 {
@@ -27,12 +37,18 @@ static app_core_action_id_t system_allocate_action_id(
     return action_id;
 }
 
+/**
+ * @brief 清除当前正在处理的 System 请求信息。
+ */
 static void system_clear_active_request(app_system_fsm_t *fsm)
 {
     fsm->active_meta = (app_core_message_meta_t){0};
     fsm->active_request_id = APP_CORE_INVALID_REQUEST_ID;
 }
 
+/**
+ * @brief 将 System 状态机置为故障状态。
+ */
 static void system_set_fault(app_system_fsm_t *fsm, esp_err_t error)
 {
     if (error == ESP_OK)
@@ -44,6 +60,12 @@ static void system_set_fault(app_system_fsm_t *fsm, esp_err_t error)
     fsm->last_error = error;
 }
 
+/**
+ * @brief 创建并输出一个 System Action。
+ *
+ * 该函数只负责把状态机决定的 Effect 包装成 Action，
+ * 再交给 Controller 的 Action Engine。
+ */
 static esp_err_t system_emit_action(app_system_fsm_t *fsm, const app_core_message_meta_t *source_meta, app_core_effect_type_t effect_type, app_system_fsm_emit_action_fn emit_action, void *emit_ctx)
 {
     app_core_effect_t effect;
@@ -60,6 +82,12 @@ static esp_err_t system_emit_action(app_system_fsm_t *fsm, const app_core_messag
     return emit_action(emit_ctx, &action);
 }
 
+/**
+ * @brief 开始一次 System 生命周期转换。
+ *
+ * 函数先记录当前请求并更新为过渡状态，
+ * 再输出对应的 System Action。
+ */
 static esp_err_t system_begin_action(app_system_fsm_t *fsm,    const app_core_message_meta_t *meta,
     app_core_system_state_t pending_state,
     app_core_effect_type_t effect_type,
@@ -92,6 +120,9 @@ static esp_err_t system_begin_action(app_system_fsm_t *fsm,    const app_core_me
     return ESP_OK;
 }
 
+/**
+ * @brief 初始化 System 状态机。
+ */
 void app_system_fsm_init(app_system_fsm_t *fsm)
 {
     if (fsm == NULL)
@@ -106,6 +137,9 @@ void app_system_fsm_init(app_system_fsm_t *fsm)
     fsm->last_error = ESP_OK;
 }
 
+/**
+ * @brief 获取当前 System 状态。
+ */
 esp_err_t app_system_fsm_get_state(const app_system_fsm_t *fsm, app_core_system_state_t *state)
 {
     if (fsm == NULL || state == NULL)
@@ -116,6 +150,11 @@ esp_err_t app_system_fsm_get_state(const app_system_fsm_t *fsm, app_core_system_
     return ESP_OK;
 }
 
+/**
+ * @brief 根据 Request 推进 System 状态机。
+ *
+ * 支持初始化、挂起和恢复三类 System 生命周期请求。
+ */
 esp_err_t app_system_fsm_handle_request(app_system_fsm_t *fsm, const app_core_request_t *request, app_system_fsm_emit_action_fn emit_action, void *emit_ctx)
 {
     app_core_message_meta_t request_meta;
@@ -185,6 +224,12 @@ esp_err_t app_system_fsm_handle_request(app_system_fsm_t *fsm, const app_core_re
     }
 }
 
+/**
+ * @brief 根据 Event 完成或终止 System 状态转换。
+ *
+ * 成功事件会进入对应的稳定状态，
+ * FAILED 事件会让 System 进入 FAULT 状态。
+ */
 esp_err_t app_system_fsm_handle_event(app_system_fsm_t *fsm,const app_core_event_t *event)
 {
     if (fsm == NULL || event == NULL)

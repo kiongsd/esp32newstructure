@@ -1,5 +1,12 @@
 #include "app_system_controller.h"
 
+/**
+ * @brief 初始化 System Controller。
+ *
+ * Controller 负责创建 System Action 队列，
+ * 初始化 Action Engine 和 System FSM，
+ * 并绑定 Action Engine 的 Event 输出接口。
+ */
 esp_err_t app_system_controller_init(app_system_controller_t *controller, const app_core_runtime_t *runtime, UBaseType_t action_queue_length, app_core_action_engine_emit_event_fn emit_event, void *event_ctx)
 {
     esp_err_t result;
@@ -58,6 +65,9 @@ esp_err_t app_system_controller_init(app_system_controller_t *controller, const 
     return ESP_OK;
 }
 
+/**
+ * @brief 释放 System Controller 及其 Action 队列。
+ */
 void app_system_controller_deinit(app_system_controller_t *controller)
 {
     if (controller == NULL)
@@ -75,6 +85,9 @@ void app_system_controller_deinit(app_system_controller_t *controller)
         (app_system_controller_t){0};
 }
 
+/**
+ * @brief 将 Request 交给 System FSM 处理。
+ */
 esp_err_t app_system_controller_handle_request(app_system_controller_t *controller, const app_core_request_t *request)
 {
     if (controller == NULL ||
@@ -95,6 +108,12 @@ esp_err_t app_system_controller_handle_request(app_system_controller_t *controll
         &controller->action_engine);
 }
 
+/**
+ * @brief 处理 System Event。
+ *
+ * 先由 Action Engine 根据 Request ID 和 Event 类型完成 Action，
+ * 再由 FSM 更新 System 生命周期状态。
+ */
 esp_err_t app_system_controller_handle_event(app_system_controller_t *controller, const app_core_event_t *event)
 {
     esp_err_t result;
@@ -121,6 +140,9 @@ esp_err_t app_system_controller_handle_event(app_system_controller_t *controller
         event);
 }
 
+/**
+ * @brief 执行一次 System Action。
+ */
 esp_err_t app_system_controller_process_once(app_system_controller_t *controller)
 {
     if (controller == NULL )
@@ -135,6 +157,9 @@ esp_err_t app_system_controller_process_once(app_system_controller_t *controller
     return app_core_action_engine_process_once(&controller->action_engine);
 }
 
+/**
+ * @brief 获取 System FSM 当前状态。
+ */
 esp_err_t app_system_controller_get_state(const app_system_controller_t *controller, app_core_system_state_t *state)
 {
     if (controller == NULL ||

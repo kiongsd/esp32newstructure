@@ -9,6 +9,7 @@
 #include "app_core_dispatcher.h"
 #include "app_core_runtime.h"
 #include "app_core_action_engine.h"
+#include "app_system_test.h"
 #include "esp_err.h"
 #include "esp_log.h"
 
@@ -176,6 +177,8 @@ static esp_err_t test_action_engine_emit_event(
  */
 void app_main(void)
 {
+
+    app_system_test_run();
     static app_core_request_t request;
     static app_core_event_t event;
     static app_core_effect_t effect;

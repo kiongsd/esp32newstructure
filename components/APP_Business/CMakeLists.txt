@@ -1,9 +1,11 @@
 set(src_dirs
     APP_System/src
+    APP_Test/src
 )
 
 set(include_dirs
     APP_System/include
+    APP_Test/include
 )
 
 set(requires

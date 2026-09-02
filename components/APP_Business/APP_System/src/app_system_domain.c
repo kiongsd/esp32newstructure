@@ -1,5 +1,8 @@
 #include "app_system_domain.h"
 
+/**
+ * @brief 判断 System Domain 是否负责处理指定 Request。
+ */
 static bool system_domain_match_request(
     void *ctx,
     const app_core_request_t *request)
@@ -29,6 +32,9 @@ static bool system_domain_match_request(
     }
 }
 
+/**
+ * @brief 判断 System Domain 是否负责处理指定 Event。
+ */
 static bool system_domain_match_event(
     void *ctx,
     const app_core_event_t *event)
@@ -59,6 +65,9 @@ static bool system_domain_match_event(
     }
 }
 
+/**
+ * @brief 将 Controller 当前的 System 状态同步到 State Store。
+ */
 static esp_err_t system_domain_sync_state(
     app_system_domain_t *domain)
 {
@@ -101,6 +110,11 @@ static esp_err_t system_domain_sync_state(
         &snapshot);
 }
 
+/**
+ * @brief 处理 Dispatcher 分发过来的 System Request。
+ *
+ * Request 处理完成后，将 FSM 状态同步到公共状态快照。
+ */
 static esp_err_t system_domain_handle_request(
     void *ctx,
     const app_core_request_t *request)
@@ -135,6 +149,11 @@ static esp_err_t system_domain_handle_request(
     return sync_result;
 }
 
+/**
+ * @brief 处理 Dispatcher 分发过来的 System Event。
+ *
+ * Event 处理完成后，将 FSM 状态同步到公共状态快照。
+ */
 static esp_err_t system_domain_handle_event(
     void *ctx,
     const app_core_event_t *event)
@@ -169,6 +188,12 @@ static esp_err_t system_domain_handle_event(
     return sync_result;
 }
 
+/**
+ * @brief 执行一次 System Domain 周期处理。
+ *
+ * 该函数由 Dispatcher 周期调用，
+ * 用于驱动 System Controller 执行待处理 Action。
+ */
 static esp_err_t system_domain_process_once(
     void *ctx)
 {
@@ -199,6 +224,13 @@ static esp_err_t system_domain_process_once(
     return result;
 }
 
+/**
+ * @brief 初始化 System Domain。
+ *
+ * 初始化完成后，可以通过
+ * app_system_domain_get_handler() 获取通用回调表，
+ * 并注册到 App Core Dispatcher。
+ */
 esp_err_t app_system_domain_init(
     app_system_domain_t *domain,
     app_system_controller_t *controller,
@@ -255,6 +287,9 @@ esp_err_t app_system_domain_init(
     return ESP_OK;
 }
 
+/**
+ * @brief 释放 System Domain。
+ */
 void app_system_domain_deinit(
     app_system_domain_t *domain)
 {
@@ -267,6 +302,9 @@ void app_system_domain_deinit(
         (app_system_domain_t){0};
 }
 
+/**
+ * @brief 获取 System Domain 的 Dispatcher 回调表。
+ */
 const app_core_domain_handler_t *
 app_system_domain_get_handler(
     const app_system_domain_t *domain)
