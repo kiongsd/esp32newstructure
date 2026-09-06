@@ -15,11 +15,19 @@
 
 static const char *TAG = "APP_STORAGE_TEST";
 
+/**
+ * @brief Storage 集成测试上下文。
+ *
+ * 假 Runtime 通过该上下文把模拟 Event 发送回 Dispatcher。
+ */
 typedef struct
 {
     app_core_dispatcher_t *dispatcher;
 } app_storage_test_context_t;
 
+/**
+ * @brief 向测试 Dispatcher 发送一个假的 Storage Event。
+ */
 static esp_err_t app_storage_test_emit_event(
     void *ctx,
     const app_core_message_meta_t *meta,
@@ -58,6 +66,11 @@ static esp_err_t app_storage_test_emit_event(
         &event);
 }
 
+/**
+ * @brief 模拟底层图库扫描完成。
+ *
+ * 测试固定返回 3 张照片。
+ */
 static esp_err_t app_storage_test_scan_gallery(
     void *ctx,
     const app_core_message_meta_t *meta)
@@ -70,6 +83,9 @@ static esp_err_t app_storage_test_scan_gallery(
         3U);
 }
 
+/**
+ * @brief 模拟底层完成照片显示。
+ */
 static esp_err_t app_storage_test_show_gallery_photo(
     void *ctx,
     const app_core_message_meta_t *meta,
@@ -84,6 +100,12 @@ static esp_err_t app_storage_test_show_gallery_photo(
         total);
 }
 
+/**
+ * @brief 提交并处理一个 Storage Request。
+ *
+ * 每轮 Dispatcher 依次处理 Request、Event 和 Domain Action。
+ * Storage 的单步请求通常需要两轮才能完成。
+ */
 static esp_err_t app_storage_test_process_request(
     app_core_dispatcher_t *dispatcher,
     app_core_state_store_t *state_store,
@@ -162,6 +184,12 @@ static esp_err_t app_storage_test_process_request(
     return ESP_OK;
 }
 
+/**
+ * @brief 执行 APP_Storage 集成测试。
+ *
+ * 测试独立创建 State Store、Dispatcher、Controller 和 Domain，
+ * 使用假的 Runtime 验证扫描图库和显示照片的完整链路。
+ */
 void app_storage_test_run(void)
 {
     app_core_state_store_t state_store = {0};
@@ -201,6 +229,8 @@ void app_storage_test_run(void)
     }
 
     runtime.storage_ctx = &test_context;
+    runtime.display_ctx = &test_context;
+
     runtime.scan_gallery = app_storage_test_scan_gallery;
     runtime.show_gallery_photo = app_storage_test_show_gallery_photo;
 

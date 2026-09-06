@@ -1,13 +1,13 @@
-#include "app_storage_controller.h"
+#include "app_ui_controller.h"
 
 /**
- * @brief 初始化 Storage Controller。
+ * @brief 初始化 UI Controller。
  *
- * Controller 负责创建 Storage Action 队列，
- * 初始化 Action Engine 和 Storage FSM，
+ * Controller 负责创建 UI Action 队列，
+ * 初始化 Action Engine 和 UI FSM，
  * 并绑定 Action Engine 的 Event 输出接口。
  */
-esp_err_t app_storage_controller_init(app_storage_controller_t *controller, const app_core_runtime_t *runtime, UBaseType_t action_queue_length, app_core_action_engine_emit_event_fn emit_event, void *event_ctx)
+esp_err_t app_ui_controller_init(app_ui_controller_t *controller, const app_core_runtime_t *runtime, UBaseType_t action_queue_length, app_core_action_engine_emit_event_fn emit_event, void *event_ctx)
 {
     esp_err_t result;
 
@@ -25,7 +25,7 @@ esp_err_t app_storage_controller_init(app_storage_controller_t *controller, cons
         return ESP_ERR_INVALID_STATE;
     }
 
-    *controller = (app_storage_controller_t){0};
+    *controller = (app_ui_controller_t){0};
 
     controller->action_queue = xQueueCreate(action_queue_length, sizeof(app_core_action_t));
 
@@ -56,7 +56,7 @@ esp_err_t app_storage_controller_init(app_storage_controller_t *controller, cons
         return result;
     }
 
-    app_storage_fsm_init(
+    app_ui_fsm_init(
         &controller->fsm);
 
     controller->initialized =
@@ -66,9 +66,9 @@ esp_err_t app_storage_controller_init(app_storage_controller_t *controller, cons
 }
 
 /**
- * @brief 释放 Storage Controller 及其 Action 队列。
+ * @brief 释放 UI Controller 及其 Action 队列。
  */
-void app_storage_controller_deinit(app_storage_controller_t *controller)
+void app_ui_controller_deinit(app_ui_controller_t *controller)
 {
     if (controller == NULL)
     {
@@ -82,13 +82,13 @@ void app_storage_controller_deinit(app_storage_controller_t *controller)
     }
 
     *controller =
-        (app_storage_controller_t){0};
+        (app_ui_controller_t){0};
 }
 
 /**
- * @brief 将 Request 交给 Storage FSM 处理。
+ * @brief 将 Request 交给 UI FSM 处理。
  */
-esp_err_t app_storage_controller_handle_request(app_storage_controller_t *controller, const app_core_request_t *request)
+esp_err_t app_ui_controller_handle_request(app_ui_controller_t *controller, const app_core_request_t *request)
 {
     if (controller == NULL ||
         request == NULL)
@@ -101,7 +101,7 @@ esp_err_t app_storage_controller_handle_request(app_storage_controller_t *contro
         return ESP_ERR_INVALID_STATE;
     }
 
-    return app_storage_fsm_handle_request(
+    return app_ui_fsm_handle_request(
         &controller->fsm,
         request,
         app_core_action_engine_emit_action,
@@ -109,12 +109,12 @@ esp_err_t app_storage_controller_handle_request(app_storage_controller_t *contro
 }
 
 /**
- * @brief 处理 Storage Event。
+ * @brief 处理 UI Event。
  *
  * 先由 Action Engine 根据 Request ID 和 Event 类型完成 Action，
- * 再由 FSM 更新 Storage 业务状态。
+ * 再由 FSM 更新 UI 页面状态。
  */
-esp_err_t app_storage_controller_handle_event(app_storage_controller_t *controller, const app_core_event_t *event)
+esp_err_t app_ui_controller_handle_event(app_ui_controller_t *controller, const app_core_event_t *event)
 {
     esp_err_t result;
     if (controller == NULL ||
@@ -135,7 +135,7 @@ esp_err_t app_storage_controller_handle_event(app_storage_controller_t *controll
         return result;
     }
 
-    return app_storage_fsm_handle_event(
+    return app_ui_fsm_handle_event(
         &controller->fsm,
         event,
         app_core_action_engine_emit_action,
@@ -143,9 +143,9 @@ esp_err_t app_storage_controller_handle_event(app_storage_controller_t *controll
 }
 
 /**
- * @brief 执行一次 Storage Action。
+ * @brief 执行一次 UI Action。
  */
-esp_err_t app_storage_controller_process_once(app_storage_controller_t *controller)
+esp_err_t app_ui_controller_process_once(app_ui_controller_t *controller)
 {
     if (controller == NULL)
     {
@@ -160,12 +160,12 @@ esp_err_t app_storage_controller_process_once(app_storage_controller_t *controll
 }
 
 /**
- * @brief 获取 Storage FSM 当前状态。
+ * @brief 获取 UI FSM 当前页面。
  */
-esp_err_t app_storage_controller_get_state(const app_storage_controller_t *controller, app_core_storage_state_t *state)
+esp_err_t app_ui_controller_get_page(const app_ui_controller_t *controller, app_core_lvgl_page_t *page)
 {
     if (controller == NULL ||
-        state == NULL)
+        page == NULL)
     {
         return ESP_ERR_INVALID_ARG;
     }
@@ -174,7 +174,7 @@ esp_err_t app_storage_controller_get_state(const app_storage_controller_t *contr
     {
         return ESP_ERR_INVALID_STATE;
     }
-    return app_storage_fsm_get_state(
+    return app_ui_fsm_get_page(
         &controller->fsm,
-        state);
+        page);
 }

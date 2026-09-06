@@ -2,6 +2,11 @@
 
 #include <stddef.h>
 
+/**
+ * @brief 判断 Storage 是否处于异步处理状态。
+ *
+ * SCANNING 和 SHOWING 状态下不能再次发起新的 Storage 请求。
+ */
 static bool app_storage_state_is_busy(
     app_core_storage_state_t state)
 {
@@ -9,6 +14,11 @@ static bool app_storage_state_is_busy(
            state == APP_CORE_STORAGE_STATE_SHOWING;
 }
 
+/**
+ * @brief 分配下一个 Storage Action 编号。
+ *
+ * 0 保留给无效 Action ID；编号溢出后从 1 重新开始。
+ */
 static app_core_action_id_t app_storage_allocate_action_id(
     app_storage_fsm_t *fsm)
 {
@@ -24,6 +34,9 @@ static app_core_action_id_t app_storage_allocate_action_id(
     return action_id;
 }
 
+/**
+ * @brief 清除当前正在处理的 Storage 请求信息。
+ */
 static void app_storage_clear_active(
     app_storage_fsm_t *fsm)
 {
@@ -31,6 +44,12 @@ static void app_storage_clear_active(
     fsm->active_request_id = APP_CORE_INVALID_REQUEST_ID;
 }
 
+/**
+ * @brief 将 Storage Effect 封装为 Action 并输出。
+ *
+ * 该函数只负责把 FSM 决定的 Effect 包装成 Action，
+ * 再交给 Controller 的 Action Engine。
+ */
 static esp_err_t app_storage_emit_action(
     app_storage_fsm_t *fsm,
     app_core_effect_type_t effect_type,
@@ -61,6 +80,9 @@ static esp_err_t app_storage_emit_action(
     return emit_action(emit_ctx, &action);
 }
 
+/**
+ * @brief 初始化 Storage 状态机。
+ */
 void app_storage_fsm_init(
     app_storage_fsm_t *fsm)
 {
@@ -77,6 +99,9 @@ void app_storage_fsm_init(
     fsm->last_error = ESP_OK;
 }
 
+/**
+ * @brief 获取当前 Storage 状态。
+ */
 esp_err_t app_storage_fsm_get_state(
     const app_storage_fsm_t *fsm,
     app_core_storage_state_t *state)
@@ -90,6 +115,12 @@ esp_err_t app_storage_fsm_get_state(
     return ESP_OK;
 }
 
+/**
+ * @brief 根据 Request 推进 Storage 状态机。
+ *
+ * 支持扫描图库和显示指定照片两类请求，
+ * 并在请求通过校验后生成对应的 Storage Action。
+ */
 esp_err_t app_storage_fsm_handle_request(
     app_storage_fsm_t *fsm,
     const app_core_request_t *request,
@@ -160,6 +191,12 @@ esp_err_t app_storage_fsm_handle_request(
     return result;
 }
 
+/**
+ * @brief 根据 Event 完成 Storage 状态转换。
+ *
+ * 成功事件会更新图库数据并回到 IDLE，
+ * FAILED 事件会记录错误并进入 FAILED 状态。
+ */
 esp_err_t app_storage_fsm_handle_event(
     app_storage_fsm_t *fsm,
     const app_core_event_t *event,

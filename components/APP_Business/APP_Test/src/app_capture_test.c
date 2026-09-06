@@ -79,6 +79,9 @@ static esp_err_t app_capture_test_emit_event(
         &event);
 }
 
+/**
+ * @brief 模拟 Camera 启动预览完成。
+ */
 static esp_err_t app_capture_test_camera_start_preview(
     void *ctx,
     const app_core_message_meta_t *meta)
@@ -91,6 +94,9 @@ static esp_err_t app_capture_test_camera_start_preview(
         APP_CORE_INVALID_PHOTO_HANDLE);
 }
 
+/**
+ * @brief 模拟 Camera 完成拍照准备。
+ */
 static esp_err_t app_capture_test_camera_prepare_photo(
     void *ctx,
     const app_core_message_meta_t *meta,
@@ -104,6 +110,9 @@ static esp_err_t app_capture_test_camera_prepare_photo(
         APP_CORE_INVALID_PHOTO_HANDLE);
 }
 
+/**
+ * @brief 模拟 Camera 完成拍照并返回照片句柄。
+ */
 static esp_err_t app_capture_test_camera_capture(
     void *ctx,
     const app_core_message_meta_t *meta,
@@ -119,6 +128,9 @@ static esp_err_t app_capture_test_camera_capture(
         1001U);
 }
 
+/**
+ * @brief 模拟 Camera 停止预览。
+ */
 static esp_err_t app_capture_test_camera_stop(
     void *ctx,
     const app_core_message_meta_t *meta)
@@ -131,6 +143,9 @@ static esp_err_t app_capture_test_camera_stop(
         APP_CORE_INVALID_PHOTO_HANDLE);
 }
 
+/**
+ * @brief 模拟 Camera 完成自动对焦。
+ */
 static esp_err_t app_capture_test_camera_focus(
     void *ctx,
     const app_core_message_meta_t *meta)
@@ -143,6 +158,9 @@ static esp_err_t app_capture_test_camera_focus(
         APP_CORE_INVALID_PHOTO_HANDLE);
 }
 
+/**
+ * @brief 模拟照片保存完成。
+ */
 static esp_err_t app_capture_test_save_photo(
     void *ctx,
     const app_core_message_meta_t *meta,
@@ -253,6 +271,12 @@ static esp_err_t app_capture_test_process_request(
     return ESP_OK;
 }
 
+/**
+ * @brief 执行 APP_Capture 集成测试。
+ *
+ * 使用假的 Camera 和照片存储 Runtime，
+ * 验证预览、准备拍照、完整拍照、对焦和停止流程。
+ */
 void app_capture_test_run(void)
 {
     app_core_state_store_t state_store = {0};

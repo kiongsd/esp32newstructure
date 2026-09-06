@@ -46,13 +46,17 @@ extern "C"
         app_core_job_id_t active_job_id;
         app_core_photo_handle_t active_photo_handle;
 
+        /** Camera 预览是否已经启动。 */
         bool preview_active;
+
+        /** 当前拍照流程是否由 Web 请求触发。 */
         bool web_capture_active;
 
         /** 下一个可分配的 capture Action 编号。 */
         app_core_action_id_t next_action_id;
         app_core_job_id_t next_job_id;
 
+        /** 准备完成后是否继续执行完整拍照。 */
         bool capture_after_prepare;
         /** 最近一次 capture 业务错误。 */
         esp_err_t last_error;
@@ -61,7 +65,7 @@ extern "C"
     /**
      * @brief 初始化 capture 状态机。
      *
-     * 初始化后状态为 UNKNOWN，且当前没有正在处理的请求。
+     * 初始化后状态为 IDLE，且当前没有正在处理的请求。
      *
      * @param fsm 要初始化的 capture 状态机。
      */
