@@ -5,6 +5,13 @@
 
 #include "app_core_types.h"
 
+#include "effect/app_core_camera_effect.h"
+#include "effect/app_core_storage_effect.h"
+#include "effect/app_core_ui_effect.h"
+#include "effect/app_core_system_effect.h"
+#include "effect/app_core_web_effect.h"
+#include "effect/app_core_ota_effect.h"
+
 #ifdef __cplusplus
 extern "C"
 {
@@ -18,62 +25,46 @@ extern "C"
      */
     typedef enum
     {
-        /** 无效 Effect。 */
-        APP_CORE_EFFECT_TYPE_NONE = 0,
+        APP_CORE_EFFECT_TARGET_NONE = 0,
 
-        /** 显示指定页面。 */
-        APP_CORE_EFFECT_TYPE_SHOW_PAGE,
+        /** 系统服务执行目标。 */
+        APP_CORE_EFFECT_TARGET_SYSTEM,
 
-        /** 启动 Camera 预览。 */
-        APP_CORE_EFFECT_TYPE_CAMERA_START_PREVIEW,
+        /** Camera 执行目标。 */
+        APP_CORE_EFFECT_TARGET_CAMERA,
 
-        /** 准备 Camera 拍照。 */
-        APP_CORE_EFFECT_TYPE_CAMERA_PREPARE_PHOTO,
+        /** 存储执行目标。 */
+        APP_CORE_EFFECT_TARGET_STORAGE,
 
-        /** 停止 Camera。 */
-        APP_CORE_EFFECT_TYPE_CAMERA_STOP,
+        /** UI 执行目标。 */
+        APP_CORE_EFFECT_TARGET_UI,
 
-        /** 执行 Camera 拍照。 */
-        APP_CORE_EFFECT_TYPE_CAMERA_CAPTURE,
+        /** Web 执行目标。 */
+        APP_CORE_EFFECT_TARGET_WEB,
 
-        /** 执行 Camera 对焦。 */
-        APP_CORE_EFFECT_TYPE_CAMERA_FOCUS,
+        /** OTA 执行目标。 */
+        APP_CORE_EFFECT_TARGET_OTA,
 
-        /** 保存照片。 */
-        APP_CORE_EFFECT_TYPE_SAVE_PHOTO,
+    } app_core_effect_target_t;
 
-        /** 扫描图库。 */
-        APP_CORE_EFFECT_TYPE_SCAN_GALLERY,
+    typedef union
+    {
+        app_core_system_effect_type_t system;
+        app_core_camera_effect_type_t camera;
+        app_core_storage_effect_type_t storage;
+        app_core_ui_effect_type_t ui;
+        app_core_web_effect_type_t web;
+        app_core_ota_effect_type_t ota;
 
-        /** 显示图库中的指定照片。 */
-        APP_CORE_EFFECT_TYPE_SHOW_GALLERY_PHOTO,
+    } app_core_effect_code_t;
 
-        /** 启动 Web 服务。 */
-        APP_CORE_EFFECT_TYPE_WEB_START,
+    typedef struct
+    {
+        /** Effect 实际由哪个能力模块执行。 */
+        app_core_effect_target_t target;
 
-        /** 停止 Web 服务。 */
-        APP_CORE_EFFECT_TYPE_WEB_STOP,
-
-        /** 开始 OTA。 */
-        APP_CORE_EFFECT_TYPE_OTA_BEGIN,
-
-        /** 完成 OTA。 */
-        APP_CORE_EFFECT_TYPE_OTA_FINISH,
-
-        /** 中止 OTA。 */
-        APP_CORE_EFFECT_TYPE_OTA_ABORT,
-
-        /** 初始化系统。 */
-        APP_CORE_EFFECT_TYPE_SYSTEM_INITIALIZE,
-
-        /** 让系统进入挂起状态。 */
-        APP_CORE_EFFECT_TYPE_SYSTEM_SUSPEND,
-
-        /** 让系统恢复运行。 */
-        APP_CORE_EFFECT_TYPE_SYSTEM_RESUME,
-
-        /** 更新菜单选择项。 */
-        APP_CORE_EFFECT_TYPE_UPDATE_MENU_SELECTION,
+        /** 对应目标模块内部的 Effect 类型。 */
+        app_core_effect_code_t code;
 
     } app_core_effect_type_t;
 
@@ -182,6 +173,23 @@ extern "C"
     const char *app_core_effect_type_to_string(
         app_core_effect_type_t type);
 
+    app_core_effect_type_t app_core_effect_type_make_system(
+        app_core_system_effect_type_t type);
+
+    app_core_effect_type_t app_core_effect_type_make_camera(
+        app_core_camera_effect_type_t type);
+
+    app_core_effect_type_t app_core_effect_type_make_storage(
+        app_core_storage_effect_type_t type);
+
+    app_core_effect_type_t app_core_effect_type_make_ui(
+        app_core_ui_effect_type_t type);
+
+    app_core_effect_type_t app_core_effect_type_make_web(
+        app_core_web_effect_type_t type);
+
+    app_core_effect_type_t app_core_effect_type_make_ota(
+        app_core_ota_effect_type_t type);
 #ifdef __cplusplus
 }
 #endif

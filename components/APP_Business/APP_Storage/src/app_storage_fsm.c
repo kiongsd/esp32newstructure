@@ -148,7 +148,9 @@ esp_err_t app_storage_fsm_handle_request(
     {
     case APP_CORE_REQUEST_TYPE_SCAN_GALLERY:
         fsm->state = APP_CORE_STORAGE_STATE_SCANNING;
-        effect_type = APP_CORE_EFFECT_TYPE_SCAN_GALLERY;
+        effect_type = app_core_effect_type_make_storage(
+            APP_CORE_STORAGE_EFFECT_SCAN_GALLERY);
+
         break;
 
     case APP_CORE_REQUEST_TYPE_SHOW_GALLERY_PHOTO:
@@ -162,7 +164,8 @@ esp_err_t app_storage_fsm_handle_request(
         fsm->selected_gallery_index = request->data.gallery.index;
         fsm->state = APP_CORE_STORAGE_STATE_SHOWING;
 
-        effect_type = APP_CORE_EFFECT_TYPE_SHOW_GALLERY_PHOTO;
+        effect_type = app_core_effect_type_make_storage(
+            APP_CORE_STORAGE_EFFECT_SHOW_GALLERY_PHOTO);
         effect_data.gallery.index =
             request->data.gallery.index;
         effect_data.gallery.total =

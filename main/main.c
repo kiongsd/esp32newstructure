@@ -3,6 +3,11 @@
 #include "app_application.h"
 #include "app_runtime.h"
 
+#include "app_system_test.h"
+#include "app_capture_test.h"
+#include "app_storage_test.h"
+#include "app_ui_test.h"
+
 #include "app_core_request.h"
 #include "app_core_request_gateway.h"
 
@@ -97,6 +102,33 @@ void app_main(void)
             &application,
             &runtime));
 
+    ESP_LOGI(
+        TAG,
+        "start system test");
+
+    app_system_test_run();
+
+    ESP_LOGI(
+        TAG,
+        "start capture test");
+
+    app_capture_test_run();
+
+    ESP_LOGI(
+        TAG,
+        "start storage test");
+
+    app_storage_test_run();
+
+    ESP_LOGI(
+        TAG,
+        "start ui test");
+
+    app_ui_test_run();
+
+    ESP_LOGI(
+        TAG,
+        "all business tests finished");
     /*
      * 第三步：绑定 Dispatcher。
      *

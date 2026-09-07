@@ -2,12 +2,122 @@
 #include <string.h>
 
 #include "app_core_effect.h"
+/**
+ * @brief 创建 System Effect 类型。
+ */
+app_core_effect_type_t app_core_effect_type_make_system(
+    app_core_system_effect_type_t type)
+{
+    app_core_effect_type_t result;
+
+    result = (app_core_effect_type_t){0};
+
+    result.target =
+        APP_CORE_EFFECT_TARGET_SYSTEM;
+
+    result.code.system =
+        type;
+
+    return result;
+}
+
+/**
+ * @brief 创建 Camera Effect 类型。
+ */
+app_core_effect_type_t app_core_effect_type_make_camera(
+    app_core_camera_effect_type_t type)
+{
+    app_core_effect_type_t result;
+
+    result = (app_core_effect_type_t){0};
+
+    result.target =
+        APP_CORE_EFFECT_TARGET_CAMERA;
+
+    result.code.camera =
+        type;
+
+    return result;
+}
+
+/**
+ * @brief 创建 Storage Effect 类型。
+ */
+app_core_effect_type_t app_core_effect_type_make_storage(
+    app_core_storage_effect_type_t type)
+{
+    app_core_effect_type_t result;
+
+    result = (app_core_effect_type_t){0};
+
+    result.target =
+        APP_CORE_EFFECT_TARGET_STORAGE;
+
+    result.code.storage =
+        type;
+
+    return result;
+}
+
+/**
+ * @brief 创建 UI Effect 类型。
+ */
+app_core_effect_type_t app_core_effect_type_make_ui(
+    app_core_ui_effect_type_t type)
+{
+    app_core_effect_type_t result;
+
+    result = (app_core_effect_type_t){0};
+
+    result.target =
+        APP_CORE_EFFECT_TARGET_UI;
+
+    result.code.ui =
+        type;
+
+    return result;
+}
+
+/**
+ * @brief 创建 Web Effect 类型。
+ */
+app_core_effect_type_t app_core_effect_type_make_web(
+    app_core_web_effect_type_t type)
+{
+    app_core_effect_type_t result;
+
+    result = (app_core_effect_type_t){0};
+
+    result.target =
+        APP_CORE_EFFECT_TARGET_WEB;
+
+    result.code.web =
+        type;
+
+    return result;
+}
+
+/**
+ * @brief 创建 OTA Effect 类型。
+ */
+app_core_effect_type_t app_core_effect_type_make_ota(
+    app_core_ota_effect_type_t type)
+{
+    app_core_effect_type_t result;
+
+    result = (app_core_effect_type_t){0};
+
+    result.target =
+        APP_CORE_EFFECT_TARGET_OTA;
+
+    result.code.ota =
+        type;
+
+    return result;
+}
 
 /**
  * @brief 初始化 Effect 对象。
- *
- * 初始化时先清空整个对象，
- * 防止 union 中保留无效数据。
  */
 void app_core_effect_init(
     app_core_effect_t *effect,
@@ -22,7 +132,10 @@ void app_core_effect_init(
         return;
     }
 
-    memset(effect, 0, sizeof(*effect));
+    memset(
+        effect,
+        0,
+        sizeof(*effect));
 
     app_core_message_meta_init(
         &effect->meta,
@@ -31,7 +144,8 @@ void app_core_effect_init(
         source,
         scope);
 
-    effect->type = type;
+    effect->type =
+        type;
 }
 
 /**
@@ -40,18 +154,40 @@ void app_core_effect_init(
 bool app_core_effect_type_is_valid(
     app_core_effect_type_t type)
 {
-    return type >= APP_CORE_EFFECT_TYPE_SHOW_PAGE &&
-           type <= APP_CORE_EFFECT_TYPE_UPDATE_MENU_SELECTION;
+    switch (type.target)
+    {
+    case APP_CORE_EFFECT_TARGET_SYSTEM:
+        return app_core_system_effect_type_is_valid(
+            type.code.system);
+
+    case APP_CORE_EFFECT_TARGET_CAMERA:
+        return app_core_camera_effect_type_is_valid(
+            type.code.camera);
+
+    case APP_CORE_EFFECT_TARGET_STORAGE:
+        return app_core_storage_effect_type_is_valid(
+            type.code.storage);
+
+    case APP_CORE_EFFECT_TARGET_UI:
+        return app_core_ui_effect_type_is_valid(
+            type.code.ui);
+
+    case APP_CORE_EFFECT_TARGET_WEB:
+        return app_core_web_effect_type_is_valid(
+            type.code.web);
+
+    case APP_CORE_EFFECT_TARGET_OTA:
+        return app_core_ota_effect_type_is_valid(
+            type.code.ota);
+
+    case APP_CORE_EFFECT_TARGET_NONE:
+    default:
+        return false;
+    }
 }
 
 /**
  * @brief 检查 Effect 对象是否有效。
- *
- * 当前检查：
-
- * 1. Effect 指针不为空；
- * 2. Effect 类型有效；
- * 3. Effect 元数据有效。
  */
 bool app_core_effect_is_valid(
     const app_core_effect_t *effect)
@@ -61,83 +197,50 @@ bool app_core_effect_is_valid(
         return false;
     }
 
-    if (!app_core_effect_type_is_valid(effect->type))
+    if (!app_core_effect_type_is_valid(
+            effect->type))
     {
         return false;
     }
 
-    return app_core_message_meta_is_valid(&effect->meta);
+    return app_core_message_meta_is_valid(
+        &effect->meta);
 }
 
 /**
  * @brief 将 Effect 类型转换成字符串。
- *
- * 该函数只负责日志和调试信息转换，
- * 不负责执行具体动作。
  */
 const char *app_core_effect_type_to_string(
     app_core_effect_type_t type)
 {
-    switch (type)
+    switch (type.target)
     {
-    case APP_CORE_EFFECT_TYPE_NONE:
-        return "NONE";
+    case APP_CORE_EFFECT_TARGET_SYSTEM:
+        return app_core_system_effect_type_to_string(
+            type.code.system);
 
-    case APP_CORE_EFFECT_TYPE_SHOW_PAGE:
-        return "SHOW_PAGE";
+    case APP_CORE_EFFECT_TARGET_CAMERA:
+        return app_core_camera_effect_type_to_string(
+            type.code.camera);
 
-    case APP_CORE_EFFECT_TYPE_CAMERA_START_PREVIEW:
-        return "CAMERA_START_PREVIEW";
+    case APP_CORE_EFFECT_TARGET_STORAGE:
+        return app_core_storage_effect_type_to_string(
+            type.code.storage);
 
-    case APP_CORE_EFFECT_TYPE_CAMERA_PREPARE_PHOTO:
-        return "CAMERA_PREPARE_PHOTO";
+    case APP_CORE_EFFECT_TARGET_UI:
+        return app_core_ui_effect_type_to_string(
+            type.code.ui);
 
-    case APP_CORE_EFFECT_TYPE_CAMERA_STOP:
-        return "CAMERA_STOP";
+    case APP_CORE_EFFECT_TARGET_WEB:
+        return app_core_web_effect_type_to_string(
+            type.code.web);
 
-    case APP_CORE_EFFECT_TYPE_CAMERA_CAPTURE:
-        return "CAMERA_CAPTURE";
+    case APP_CORE_EFFECT_TARGET_OTA:
+        return app_core_ota_effect_type_to_string(
+            type.code.ota);
 
-    case APP_CORE_EFFECT_TYPE_CAMERA_FOCUS:
-        return "CAMERA_FOCUS";
-
-    case APP_CORE_EFFECT_TYPE_SAVE_PHOTO:
-        return "SAVE_PHOTO";
-
-    case APP_CORE_EFFECT_TYPE_SCAN_GALLERY:
-        return "SCAN_GALLERY";
-
-    case APP_CORE_EFFECT_TYPE_SHOW_GALLERY_PHOTO:
-        return "SHOW_GALLERY_PHOTO";
-
-    case APP_CORE_EFFECT_TYPE_WEB_START:
-        return "WEB_START";
-
-    case APP_CORE_EFFECT_TYPE_WEB_STOP:
-        return "WEB_STOP";
-
-    case APP_CORE_EFFECT_TYPE_OTA_BEGIN:
-        return "OTA_BEGIN";
-
-    case APP_CORE_EFFECT_TYPE_OTA_FINISH:
-        return "OTA_FINISH";
-
-    case APP_CORE_EFFECT_TYPE_OTA_ABORT:
-        return "OTA_ABORT";
-
-    case APP_CORE_EFFECT_TYPE_SYSTEM_INITIALIZE:
-        return "SYSTEM_INITIALIZE";
-
-    case APP_CORE_EFFECT_TYPE_SYSTEM_SUSPEND:
-        return "SYSTEM_SUSPEND";
-
-    case APP_CORE_EFFECT_TYPE_SYSTEM_RESUME:
-        return "SYSTEM_RESUME";
-
-    case APP_CORE_EFFECT_TYPE_UPDATE_MENU_SELECTION:
-        return "UPDATE_MENU_SELECTION";
-
+    case APP_CORE_EFFECT_TARGET_NONE:
     default:
-        return "UNKNOWN";
+        return "NONE";
     }
 }

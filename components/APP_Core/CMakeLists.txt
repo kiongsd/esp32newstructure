@@ -1,9 +1,11 @@
 set(src_dirs
     src
+    src/effect
 )
 
 set(include_dirs
     include
+    include/effect
 )
 
 set(requires

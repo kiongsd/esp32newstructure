@@ -13,8 +13,8 @@ static bool action_engine_action_is_valid(
         return false;
     }
 
-    if (action->effect.type ==
-        APP_CORE_EFFECT_TYPE_NONE)
+    if (!app_core_effect_type_is_valid(
+            action->effect.type))
     {
         return false;
     }
@@ -51,62 +51,105 @@ static app_core_event_type_t
 get_expected_event_type(
     app_core_effect_type_t effect_type)
 {
-    switch (effect_type)
+    switch (effect_type.target)
     {
-    case APP_CORE_EFFECT_TYPE_SHOW_PAGE:
-        return APP_CORE_EVENT_TYPE_PAGE_SHOWN;
+    case APP_CORE_EFFECT_TARGET_SYSTEM:
+        switch (effect_type.code.system)
+        {
+        case APP_CORE_SYSTEM_EFFECT_INITIALIZE:
+            return APP_CORE_EVENT_TYPE_SYSTEM_READY;
 
-    case APP_CORE_EFFECT_TYPE_CAMERA_START_PREVIEW:
-        return APP_CORE_EVENT_TYPE_CAMERA_PREVIEW_STARTED;
+        case APP_CORE_SYSTEM_EFFECT_SUSPEND:
+            return APP_CORE_EVENT_TYPE_SYSTEM_SUSPENDED;
 
-    case APP_CORE_EFFECT_TYPE_CAMERA_PREPARE_PHOTO:
-        return APP_CORE_EVENT_TYPE_CAMERA_PREPARED;
+        case APP_CORE_SYSTEM_EFFECT_RESUME:
+            return APP_CORE_EVENT_TYPE_SYSTEM_RESUMED;
 
-    case APP_CORE_EFFECT_TYPE_CAMERA_STOP:
-        return APP_CORE_EVENT_TYPE_CAMERA_STOPPED;
+        default:
+            return APP_CORE_EVENT_TYPE_NONE;
+        }
 
-    case APP_CORE_EFFECT_TYPE_CAMERA_CAPTURE:
-        return APP_CORE_EVENT_TYPE_CAMERA_CAPTURED;
+    case APP_CORE_EFFECT_TARGET_CAMERA:
+        switch (effect_type.code.camera)
+        {
+        case APP_CORE_CAMERA_EFFECT_START_PREVIEW:
+            return APP_CORE_EVENT_TYPE_CAMERA_PREVIEW_STARTED;
 
-    case APP_CORE_EFFECT_TYPE_CAMERA_FOCUS:
-        return APP_CORE_EVENT_TYPE_CAMERA_FOCUSED;
+        case APP_CORE_CAMERA_EFFECT_PREPARE_PHOTO:
+            return APP_CORE_EVENT_TYPE_CAMERA_PREPARED;
 
-    case APP_CORE_EFFECT_TYPE_SAVE_PHOTO:
-        return APP_CORE_EVENT_TYPE_PHOTO_SAVED;
+        case APP_CORE_CAMERA_EFFECT_STOP:
+            return APP_CORE_EVENT_TYPE_CAMERA_STOPPED;
 
-    case APP_CORE_EFFECT_TYPE_SCAN_GALLERY:
-        return APP_CORE_EVENT_TYPE_GALLERY_SCANNED;
+        case APP_CORE_CAMERA_EFFECT_CAPTURE:
+            return APP_CORE_EVENT_TYPE_CAMERA_CAPTURED;
 
-    case APP_CORE_EFFECT_TYPE_SHOW_GALLERY_PHOTO:
-        return APP_CORE_EVENT_TYPE_GALLERY_SELECTION_UPDATED;
+        case APP_CORE_CAMERA_EFFECT_FOCUS:
+            return APP_CORE_EVENT_TYPE_CAMERA_FOCUSED;
 
-    case APP_CORE_EFFECT_TYPE_WEB_START:
-        return APP_CORE_EVENT_TYPE_WEB_STARTED;
+        default:
+            return APP_CORE_EVENT_TYPE_NONE;
+        }
 
-    case APP_CORE_EFFECT_TYPE_WEB_STOP:
-        return APP_CORE_EVENT_TYPE_WEB_STOPPED;
+    case APP_CORE_EFFECT_TARGET_STORAGE:
+        switch (effect_type.code.storage)
+        {
+        case APP_CORE_STORAGE_EFFECT_SAVE_PHOTO:
+            return APP_CORE_EVENT_TYPE_PHOTO_SAVED;
 
-    case APP_CORE_EFFECT_TYPE_OTA_BEGIN:
-        return APP_CORE_EVENT_TYPE_OTA_STARTED;
+        case APP_CORE_STORAGE_EFFECT_SCAN_GALLERY:
+            return APP_CORE_EVENT_TYPE_GALLERY_SCANNED;
 
-    case APP_CORE_EFFECT_TYPE_OTA_FINISH:
-        return APP_CORE_EVENT_TYPE_OTA_FINISHED;
+        case APP_CORE_STORAGE_EFFECT_SHOW_GALLERY_PHOTO:
+            return APP_CORE_EVENT_TYPE_GALLERY_SELECTION_UPDATED;
 
-    case APP_CORE_EFFECT_TYPE_OTA_ABORT:
-        return APP_CORE_EVENT_TYPE_OTA_ABORTED;
+        default:
+            return APP_CORE_EVENT_TYPE_NONE;
+        }
 
-    case APP_CORE_EFFECT_TYPE_UPDATE_MENU_SELECTION:
-        return APP_CORE_EVENT_TYPE_MENU_SELECTION_UPDATED;
+    case APP_CORE_EFFECT_TARGET_UI:
+        switch (effect_type.code.ui)
+        {
+        case APP_CORE_UI_EFFECT_SHOW_PAGE:
+            return APP_CORE_EVENT_TYPE_PAGE_SHOWN;
 
-    case APP_CORE_EFFECT_TYPE_SYSTEM_INITIALIZE:
-        return APP_CORE_EVENT_TYPE_SYSTEM_READY;
+        case APP_CORE_UI_EFFECT_UPDATE_MENU_SELECTION:
+            return APP_CORE_EVENT_TYPE_MENU_SELECTION_UPDATED;
 
-    case APP_CORE_EFFECT_TYPE_SYSTEM_SUSPEND:
-        return APP_CORE_EVENT_TYPE_SYSTEM_SUSPENDED;
+        default:
+            return APP_CORE_EVENT_TYPE_NONE;
+        }
 
-    case APP_CORE_EFFECT_TYPE_SYSTEM_RESUME:
-        return APP_CORE_EVENT_TYPE_SYSTEM_RESUMED;
+    case APP_CORE_EFFECT_TARGET_WEB:
+        switch (effect_type.code.web)
+        {
+        case APP_CORE_WEB_EFFECT_START:
+            return APP_CORE_EVENT_TYPE_WEB_STARTED;
 
+        case APP_CORE_WEB_EFFECT_STOP:
+            return APP_CORE_EVENT_TYPE_WEB_STOPPED;
+
+        default:
+            return APP_CORE_EVENT_TYPE_NONE;
+        }
+
+    case APP_CORE_EFFECT_TARGET_OTA:
+        switch (effect_type.code.ota)
+        {
+        case APP_CORE_OTA_EFFECT_BEGIN:
+            return APP_CORE_EVENT_TYPE_OTA_STARTED;
+
+        case APP_CORE_OTA_EFFECT_FINISH:
+            return APP_CORE_EVENT_TYPE_OTA_FINISHED;
+
+        case APP_CORE_OTA_EFFECT_ABORT:
+            return APP_CORE_EVENT_TYPE_OTA_ABORTED;
+
+        default:
+            return APP_CORE_EVENT_TYPE_NONE;
+        }
+
+    case APP_CORE_EFFECT_TARGET_NONE:
     default:
         return APP_CORE_EVENT_TYPE_NONE;
     }

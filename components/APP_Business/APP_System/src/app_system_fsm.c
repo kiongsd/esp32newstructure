@@ -88,11 +88,12 @@ static esp_err_t system_emit_action(app_system_fsm_t *fsm, const app_core_messag
  * 函数先记录当前请求并更新为过渡状态，
  * 再输出对应的 System Action。
  */
-static esp_err_t system_begin_action(app_system_fsm_t *fsm,    const app_core_message_meta_t *meta,
-    app_core_system_state_t pending_state,
-    app_core_effect_type_t effect_type,
-    app_system_fsm_emit_action_fn emit_action,
-    void *emit_ctx){
+static esp_err_t system_begin_action(app_system_fsm_t *fsm, const app_core_message_meta_t *meta,
+                                     app_core_system_state_t pending_state,
+                                     app_core_effect_type_t effect_type,
+                                     app_system_fsm_emit_action_fn emit_action,
+                                     void *emit_ctx)
+{
     esp_err_t result;
     if (fsm == NULL || meta == NULL || emit_action == NULL)
     {
@@ -183,10 +184,10 @@ esp_err_t app_system_fsm_handle_request(app_system_fsm_t *fsm, const app_core_re
             fsm,
             &request_meta,
             APP_CORE_SYSTEM_STATE_INITIALIZING,
-            APP_CORE_EFFECT_TYPE_SYSTEM_INITIALIZE,
+            app_core_effect_type_make_system(
+                APP_CORE_SYSTEM_EFFECT_INITIALIZE),
             emit_action,
             emit_ctx);
-
     case APP_CORE_REQUEST_TYPE_SYSTEM_SUSPEND:
         if (fsm->state !=
                 APP_CORE_SYSTEM_STATE_READY &&
@@ -200,7 +201,8 @@ esp_err_t app_system_fsm_handle_request(app_system_fsm_t *fsm, const app_core_re
             fsm,
             &request_meta,
             APP_CORE_SYSTEM_STATE_SUSPENDING,
-            APP_CORE_EFFECT_TYPE_SYSTEM_SUSPEND,
+            app_core_effect_type_make_system(
+                APP_CORE_SYSTEM_EFFECT_SUSPEND),
             emit_action,
             emit_ctx);
 
@@ -215,7 +217,8 @@ esp_err_t app_system_fsm_handle_request(app_system_fsm_t *fsm, const app_core_re
             fsm,
             &request_meta,
             APP_CORE_SYSTEM_STATE_RESUMING,
-            APP_CORE_EFFECT_TYPE_SYSTEM_RESUME,
+            app_core_effect_type_make_system(
+                APP_CORE_SYSTEM_EFFECT_RESUME),
             emit_action,
             emit_ctx);
 
@@ -230,7 +233,7 @@ esp_err_t app_system_fsm_handle_request(app_system_fsm_t *fsm, const app_core_re
  * 成功事件会进入对应的稳定状态，
  * FAILED 事件会让 System 进入 FAULT 状态。
  */
-esp_err_t app_system_fsm_handle_event(app_system_fsm_t *fsm,const app_core_event_t *event)
+esp_err_t app_system_fsm_handle_event(app_system_fsm_t *fsm, const app_core_event_t *event)
 {
     if (fsm == NULL || event == NULL)
     {

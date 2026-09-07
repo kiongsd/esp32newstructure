@@ -152,7 +152,8 @@ esp_err_t app_ui_fsm_handle_request(
 
     result = app_ui_emit_action(
         fsm,
-        APP_CORE_EFFECT_TYPE_SHOW_PAGE,
+        app_core_effect_type_make_ui(
+            APP_CORE_UI_EFFECT_SHOW_PAGE),
         &effect_data,
         emit_action,
         emit_ctx);

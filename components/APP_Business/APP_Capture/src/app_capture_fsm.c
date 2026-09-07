@@ -201,7 +201,8 @@ static esp_err_t capture_begin_prepare(
         capture_emit_action(
             fsm,
             &fsm->active_meta,
-            APP_CORE_EFFECT_TYPE_CAMERA_PREPARE_PHOTO,
+            app_core_effect_type_make_camera(
+                APP_CORE_CAMERA_EFFECT_PREPARE_PHOTO),
             &effect_data,
             emit_action,
             emit_ctx);
@@ -292,7 +293,8 @@ esp_err_t app_capture_fsm_handle_request(app_capture_fsm_t *fsm, const app_core_
             capture_emit_action(
                 fsm,
                 &request_meta,
-                APP_CORE_EFFECT_TYPE_CAMERA_START_PREVIEW,
+                app_core_effect_type_make_camera(
+                    APP_CORE_CAMERA_EFFECT_START_PREVIEW),
                 NULL,
                 emit_action,
                 emit_ctx);
@@ -335,7 +337,8 @@ esp_err_t app_capture_fsm_handle_request(app_capture_fsm_t *fsm, const app_core_
             capture_emit_action(
                 fsm,
                 &request_meta,
-                APP_CORE_EFFECT_TYPE_CAMERA_STOP,
+                app_core_effect_type_make_camera(
+                    APP_CORE_CAMERA_EFFECT_STOP),
                 NULL,
                 emit_action,
                 emit_ctx);
@@ -389,7 +392,8 @@ esp_err_t app_capture_fsm_handle_request(app_capture_fsm_t *fsm, const app_core_
             capture_emit_action(
                 fsm,
                 &request_meta,
-                APP_CORE_EFFECT_TYPE_CAMERA_FOCUS,
+                app_core_effect_type_make_camera(
+                    APP_CORE_CAMERA_EFFECT_FOCUS),
                 NULL,
                 emit_action,
                 emit_ctx);
@@ -499,7 +503,8 @@ esp_err_t app_capture_fsm_handle_event(
             capture_emit_action(
                 fsm,
                 &fsm->active_meta,
-                APP_CORE_EFFECT_TYPE_CAMERA_CAPTURE,
+                app_core_effect_type_make_camera(
+                    APP_CORE_CAMERA_EFFECT_CAPTURE),
                 &effect_data,
                 emit_action,
                 emit_ctx);
@@ -554,7 +559,8 @@ esp_err_t app_capture_fsm_handle_event(
             capture_emit_action(
                 fsm,
                 &fsm->active_meta,
-                APP_CORE_EFFECT_TYPE_SAVE_PHOTO,
+                app_core_effect_type_make_storage(
+                    APP_CORE_STORAGE_EFFECT_SAVE_PHOTO),
                 &effect_data,
                 emit_action,
                 emit_ctx);
