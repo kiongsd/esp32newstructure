@@ -1,0 +1,9 @@
+
+
+# Load bootloader symbols
+set confirm off
+    # Bootloader elf was not found
+set confirm on
+
+# Load application symbols
+file D:/espproject/99_newstructure_lvgl/build_codex_check_v6/bootloader/bootloader.elf
